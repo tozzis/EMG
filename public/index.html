@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tozzis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-light bg-light">
+            <div class="navbar-brand" href="">
+                <img src="https://scontent.fbkk22-2.fna.fbcdn.net/v/t1.0-9/17265059_1263660183699294_7291211595056021376_n.jpg?_nc_cat=109&_nc_oc=AQknfjjmtlR6tBG924xA41_f5rhgf8JmB7npBwNvvBL-wgJqyUKYyfJRazpxE4XJnGo&_nc_ht=scontent.fbkk22-2.fna&oh=995178603ce746c05773de8dd36ea656&oe=5E5A3EB5" width="30" height="30" class="d-inline-block align-top" alt="">
+                Tozzis
+            </div>
+        </nav>
+        <div class="card">
+            <div id="chart"></div>
+        </div>
+    </body>
+    <script>
+        var socket = io.connect('localhost');
+        var x = []
+        var y = []
+        var count = 0
+        var layout = { colorway : ['#339900'] };
+        socket.on('temp', function(value) {
+            x.push(count++)
+            y.push(value.temp)
+            var trace = {
+                x: x,
+                y: y,
+                type: 'line'
+            };
+            var data = [trace];
+            Plotly.newPlot('chart', data, layout, {showSendToCloud: true});
+            if(count > 500) {
+                Plotly.relayout('chart',{
+                    xaxis: {
+                        range: [count-500,count]
+                    }
+                });
+            }
+        });
+    </script>
+</html>
