@@ -13,40 +13,102 @@
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     </head>
-    <body>
+    <body onLoad="display()">
         <nav class="navbar navbar-light bg-light">
             <div class="navbar-brand" href="">
-                <img src="https://scontent.fbkk22-2.fna.fbcdn.net/v/t1.0-9/17265059_1263660183699294_7291211595056021376_n.jpg?_nc_cat=109&_nc_oc=AQknfjjmtlR6tBG924xA41_f5rhgf8JmB7npBwNvvBL-wgJqyUKYyfJRazpxE4XJnGo&_nc_ht=scontent.fbkk22-2.fna&oh=995178603ce746c05773de8dd36ea656&oe=5E5A3EB5" width="30" height="30" class="d-inline-block align-top" alt="">
-                Tozzis
+                <img src="https://image.shutterstock.com/image-vector/emr-electronic-medical-record-written-600w-1123840400.jpg" width="30" height="30" class="d-inline-block align-top" alt="">
+                EMG
             </div>
+            <span class="navbar-text">
+                <div class="input-group-prepend">
+                    <input id="time" class="form-control" name="time" type="text" value="0"/>
+                    <button type="button" class="btn btn-success" onclick="startSocket()">START</button>
+                    <button type="button" class="btn btn-danger" onclick="stopSocket()">STOP</button>
+                </div>
+            </span>
         </nav>
         <div class="card">
-            <div id="chart"></div>
+            <div id="chart1"></div>
+            <hr/>
+            <div id="chart2"></div>
         </div>
     </body>
     <script>
         var socket = io.connect('localhost');
-        var x = []
-        var y = []
+        var x1 = []
+        var y1 = []
+        var x2 = []
+        var y2 = []
         var count = 0
-        var layout = { colorway : ['#339900'] };
-        socket.on('temp', function(value) {
-            x.push(count++)
-            y.push(value.temp)
-            var trace = {
-                x: x,
-                y: y,
-                type: 'line'
-            };
-            var data = [trace];
-            Plotly.newPlot('chart', data, layout, {showSendToCloud: true});
-            if(count > 500) {
-                Plotly.relayout('chart',{
-                    xaxis: {
-                        range: [count-500,count]
-                    }
-                });
+        var layout1 = { colorway : ['#FF0000'] };
+        var layout2 = { colorway : ['#0008FF'] };
+    </script>
+    <script>
+        function startSocket() {
+            socket = io.connect('localhost');
+            startTime();
+            socket.on('temp', (value) => {
+                var value_split = value.temp.split(',')
+                count++
+                x1.push(count)
+                y1.push(value_split[0])
+                x2.push(count)
+                y2.push(value_split[1])
+                var trace1 = {
+                    x: x1,
+                    y: y1,
+                    type: 'line'
+                };
+                var trace2 = {
+                    x: x2,
+                    y: y2,
+                    type: 'line'
+                };
+                var data1 = [trace1];
+                var data2 = [trace2];
+                Plotly.newPlot('chart1', data1, layout1, {showSendToCloud: true});
+                Plotly.newPlot('chart2', data2, layout2, {showSendToCloud: true});
+                if(count > 500) {
+                    Plotly.relayout('chart1',{
+                        xaxis: {
+                            range: [count-500,count]
+                        }
+                    });
+                    Plotly.relayout('chart2',{
+                        xaxis: {
+                            range: [count-500,count]
+                        }
+                    });
+                }
+            });
+        }
+        function stopSocket() {
+            socket.close();
+            stopTime();
+        }
+    </script>
+    <script>
+        var time = new Date();
+        var ms = 0
+        var state = 0
+        function startTime() {
+            state = 1
+            time = new Date();
+            time.setTime(time.getTime() - ms);
+        }
+        function stopTime() {
+            state = 0
+            var now = new Date();
+            ms = now.getTime() - time.getTime();
+            document.getElementById("time").value = ms;
+        }
+        function display() {
+            setTimeout("display();", 50);
+            if(state == 1){
+                var now = new Date();
+                ms = now.getTime() - time.getTime();
+                document.getElementById("time").value = ms;
             }
-        });
+        }
     </script>
 </html>
